@@ -90,12 +90,6 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
 
         weatherTask.execute("21", "105.8");
 
-        mPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                invalidateOptionsMenu();
-            }
-        });
     }
 
     @Override
@@ -366,6 +360,15 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
                 CirclePageIndicator mIndicator = (CirclePageIndicator) findViewById(R.id.indicator);
 
                 mIndicator.setViewPager(mPager);
+
+                mIndicator.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        listView.setItemChecked(position, true);
+                        listView.smoothScrollToPosition(position);
+                    }
+                });
+
             } else
                 Toast.makeText(getApplicationContext(), "Network error!", Toast.LENGTH_SHORT).show();
 
