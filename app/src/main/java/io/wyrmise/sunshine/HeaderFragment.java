@@ -79,12 +79,12 @@ public class HeaderFragment extends Fragment {
         int resourceId = res.getIdentifier(getImageName(weather.getIcon()), "drawable", getActivity().getPackageName() );
 
         if(weather!=null) {
-            tempTxtView.setText(weather.getMinTemp());
+            tempTxtView.setText(weather.getTemp() + (char) 0x00B0);
             cityTxtView.setText(weather.getLocation());
             descTxtView.setText(weather.getDescription());
             humidityTxtView.setText("Humidity: " + weather.getHumidity() + "%");
-            pressureTxtView.setText("Pressure: " + weather.getPressure()  + " hPa");
-            windTxtView.setText("Wind Speed: " + weather.getWind() + " km/h");
+            pressureTxtView.setText("Pressure: " + weather.getPressure()  + " HPA");
+            windTxtView.setText("Wind Speed: " + weather.getWind() + " KMH");
             imageView.setImageResource(resourceId);
         }
         return rootView;

@@ -38,7 +38,9 @@ public class WeatherAdapter extends ArrayAdapter<Weather> {
         if(convertView1==null) {
             holder = new Holder();
             convertView1 = vi.inflate(R.layout.list_item, parent, false);
+            holder.date = (TextView) convertView1.findViewById(R.id.date);
             holder.description = (TextView) convertView1.findViewById(R.id.description);
+            holder.temperature = (TextView) convertView1.findViewById(R.id.temperature);
             holder.image = (ImageView) convertView1.findViewById(R.id.img);
             convertView1.setTag(holder);
         } else {
@@ -47,7 +49,9 @@ public class WeatherAdapter extends ArrayAdapter<Weather> {
 
         Weather weather = getItem(position);
 
-        holder.description.setText(weather.getDate() + " - " + weather.getDescription() + " - " + weather.getMinTemp() + "/" + weather.getMaxTemp());
+        holder.date.setText(weather.getDate());
+        holder.description.setText(weather.getDescription().toUpperCase());
+        holder.temperature.setText(weather.getMinTemp()+ (char) 0x00B0 + " - " + weather.getMaxTemp()+ (char) 0x00B0);
 
         String image = getImage(weather.getIcon());
 
@@ -134,6 +138,8 @@ public class WeatherAdapter extends ArrayAdapter<Weather> {
 
     private class Holder {
         public TextView description;
+        public TextView date;
+        public TextView temperature;
         public ImageView image;
     }
 }

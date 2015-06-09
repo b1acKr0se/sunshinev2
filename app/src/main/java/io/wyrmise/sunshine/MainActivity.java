@@ -17,6 +17,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -50,16 +52,19 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
 
     private PagerAdapter mPagerAdapter;
 
-    ListView listView;
+    private ListView listView;
 
     public static ArrayList<Weather> weatherList;
 
+    private RelativeLayout container;
+
+    private ProgressBar progressBar;
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     private GoogleApiClient mGoogleApiClient;
 
-    private String lat,lon;
+    private String lat, lon;
 
 
     @Override
@@ -67,13 +72,17 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(checkPlayService()){
+        if (checkPlayService()) {
             buildGoogleApiClient();
         }
 
         listView = (ListView) findViewById(R.id.forecast_listview);
 
         listView.setOnItemClickListener(this);
+
+        container = (RelativeLayout) findViewById(R.id.container);
+
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         mPager = (ViewPager) findViewById(R.id.viewpager);
 
@@ -90,15 +99,15 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
     }
 
     @Override
-    protected void onStart(){
+    protected void onStart() {
         super.onStart();
-        if(mGoogleApiClient!=null){
+        if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
         checkPlayService();
     }
@@ -115,13 +124,13 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
      * Google api callback
      */
     @Override
-    public void onConnectionFailed(ConnectionResult result){
+    public void onConnectionFailed(ConnectionResult result) {
         System.out.println("Connection failed: ConnectionResult.getErrorCode() = "
                 + result.getErrorCode());
     }
 
     @Override
-    public void onConnected(Bundle bundle){
+    public void onConnected(Bundle bundle) {
 
     }
 
@@ -130,13 +139,13 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
         mGoogleApiClient.connect();
     }
 
-    private boolean checkPlayService(){
+    private boolean checkPlayService() {
         int result = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if(result!= ConnectionResult.SUCCESS){
-            if(GooglePlayServicesUtil.isUserRecoverableError(result)){
-                GooglePlayServicesUtil.getErrorDialog(result,this,PLAY_SERVICES_RESOLUTION_REQUEST).show();
+        if (result != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(result)) {
+                GooglePlayServicesUtil.getErrorDialog(result, this, PLAY_SERVICES_RESOLUTION_REQUEST).show();
             } else {
-                Toast.makeText(this,"This device is not supported by Google Play Service.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "This device is not supported by Google Play Service.", Toast.LENGTH_LONG).show();
                 finish();
             }
             return false;
@@ -144,27 +153,27 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
         return true;
     }
 
-    protected synchronized void buildGoogleApiClient(){
+    protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API).build();
     }
 
-    private void displayLocation(){
+    private void displayLocation() {
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if(location!=null){
+        if (location != null) {
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
 
             lat = String.valueOf(latitude);
             lon = String.valueOf(longitude);
 
-            String[] geo = {lat,lon};
+            String[] geo = {lat, lon};
 
 
         } else {
-            Toast.makeText(this,"Cannot retrieve your location!",Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Cannot retrieve your location!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -226,6 +235,13 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
     private class GetWeatherData extends AsyncTask<String, Void, Weather[]> {
 
         private final String LOG_TAG = GetWeatherData.class.getSimpleName();
+
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(ProgressBar.VISIBLE);
+            listView.setVisibility(ListView.GONE);
+            container.setVisibility(RelativeLayout.GONE);
+        }
 
         @Override
         protected Weather[] doInBackground(String... params) {
@@ -331,7 +347,11 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
 
         public void onPostExecute(Weather[] result) {
 
-            if(result!=null) {
+            progressBar.setVisibility(ProgressBar.GONE);
+            listView.setVisibility(ListView.VISIBLE);
+            container.setVisibility(RelativeLayout.VISIBLE);
+
+            if (result != null) {
 
                 weatherList = new ArrayList<Weather>(Arrays.asList(result));
 
@@ -347,13 +367,13 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
 
                 mIndicator.setViewPager(mPager);
             } else
-                Toast.makeText(getApplicationContext(), "Network error!",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Network error!", Toast.LENGTH_SHORT).show();
 
         }
 
 
         private String getReadableDate(long time) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMM dd");
             return dateFormat.format(time);
         }
 
@@ -411,6 +431,8 @@ public class MainActivity extends FragmentActivity implements AdapterView.OnItem
                 JSONObject temperature = dayForecast.getJSONObject(TEMP);
                 double min = temperature.getDouble(MIN);
                 double max = temperature.getDouble(MAX);
+
+                weatherObject.setTemp(String.valueOf(Math.round((min+max)/2)));
 
                 weatherObject.setHumidity(String.valueOf(dayForecast.getInt(HUMIDITY)));
 
